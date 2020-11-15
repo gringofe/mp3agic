@@ -217,8 +217,18 @@ public class Mp3File extends FileWrapper {
 
 	private int scanBlock(byte[] bytes, int bytesRead, int absoluteOffset, int offset) throws InvalidDataException {
 		while (offset < bytesRead - MINIMUM_BUFFER_LENGTH) {
-			MpegFrame frame = new MpegFrame(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
-			sanityCheckFrame(frame, absoluteOffset + offset);
+			MpegFrame frame;
+			try {
+				frame = new MpegFrame(bytes[offset], bytes[offset + 1], bytes[offset + 2], bytes[offset + 3]);
+				sanityCheckFrame(frame, absoluteOffset + offset);
+			}
+			catch(InvalidDataException ide) {
+//				if (skipBadFrames) {
+					offset++;
+					continue;
+//				}
+//				throw ide;
+			}
 			int newEndOffset = absoluteOffset + offset + frame.getLengthInBytes() - 1;
 			if (newEndOffset < maxEndOffset()) {
 				endOffset = absoluteOffset + offset + frame.getLengthInBytes() - 1;
